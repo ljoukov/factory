@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Subtle grid and glow background */
+.bg-grid {
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(59,130,246,0.15), transparent 60%),
+    radial-gradient(1000px 500px at 10% -10%, rgba(168,85,247,0.15), transparent 60%),
+    linear-gradient(transparent 0, transparent 95%, color-mix(in oklab, var(--foreground) 8%, transparent) 100%),
+    linear-gradient(90deg, transparent 0, transparent 95%, color-mix(in oklab, var(--foreground) 8%, transparent) 100%);
+  background-size: auto, auto, 40px 40px, 40px 40px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+}
+
+.card {
+  @apply rounded-xl border border-black/5 dark:border-white/10 bg-background/60 backdrop-blur shadow-sm;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium transition-colors;
+}
+.btn-primary {
+  @apply bg-gradient-to-br from-blue-600 to-violet-600 text-white hover:from-blue-500 hover:to-violet-500;
+}
+.btn-ghost {
+  @apply bg-transparent border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5;
+}
+
+.kbd {
+  @apply px-1.5 py-0.5 rounded-md border border-black/10 dark:border-white/15 text-xs font-mono;
+}
