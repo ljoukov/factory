@@ -48,6 +48,22 @@ export default function Home() {
   const [plan, setPlan] = useState<PlanResponse | null>(null);
   const [sim, setSim] = useState<SimResponse | null>(null);
   const [deploy, setDeploy] = useState<DeployResponse | null>(null);
+  const [templates, setTemplates] = useState<Array<{ id: string; label: string; desire: Desire }>>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/templates", { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => setTemplates(data.templates || []))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+
+  function applyTemplate(id: string) {
+    const tmpl = templates.find((t) => t.id === id);
+    if (tmpl) setDesire(tmpl.desire);
+  }
+
 
   // Evals (Daytona) smoke-test state
   const [evalLanguage, setEvalLanguage] = useState<"python" | "typescript" | "javascript">("python");
@@ -237,6 +253,21 @@ export default function Home() {
                 Reset
               </button>
             </div>
+            {templates.length > 0 && (
+              <div className="mb-4">
+                <label className="text-sm text-foreground/70 mr-2">Template</label>
+                <select
+                  className="px-2 py-1 rounded-md border border-black/10 dark:border-white/15 bg-background/70 text-sm"
+                  defaultValue=""
+                  onChange={(e) => applyTemplate(e.target.value)}
+                >
+                  <option value="">Custom</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-foreground/70">Goal</label>
