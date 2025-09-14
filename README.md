@@ -398,6 +398,52 @@ _(Exact commands depend on your stack; see `/apps/web-ui/README.md` and `/apps/c
 **Is this just another code generator?**
 No. Factory stores **intent** as a semantic graph and compiles code from it. The graph is the source of truth.
 
+---
+
+## Daytona Code Execution (Evals)
+
+This repo includes a lightweight server-side integration with Daytona to execute generated code in isolated sandboxes for evals.
+
+- API route: `POST /api/evals/execute`
+- Env vars: set `DAYTONA_API_KEY` (and optionally `DAYTONA_API_URL`, `DAYTONA_TARGET`).
+- Default security: network blocked in the sandbox unless `network.blockAll` is set to `false`.
+
+Example request body:
+
+```
+{
+  "language": "python",             // "python" | "typescript" | "javascript" (default: python)
+  "code": "print('hello from eval')", // or use "command" instead of "code"
+  "argv": ["--flag"],
+  "env": { "MY_FLAG": "1" },
+  "timeout": 10,                      // seconds
+  "files": [
+    { "path": "data/input.json", "content": "{\"k\":1}" }
+  ],
+  "network": { "blockAll": true }    // default true; set false to allow outbound
+}
+```
+
+Response shape:
+
+```
+{
+  "ok": true,
+  "exitCode": 0,
+  "stdout": "hello from eval\n",
+  "artifacts": {
+    "stdout": "hello from eval\n",
+    "charts": []
+  }
+}
+```
+
+Notes:
+
+- Uses `@daytonaio/sdk` to spin up an ephemeral sandbox, run the snippet/command, then deletes the sandbox.
+- For Python, matplotlib output is parsed into `artifacts.charts` when applicable.
+- You can upload small input files via `files[]` prior to execution.
+
 **Why multiple LLMs?**
 Different tasks require different reasoning and context windows. Clear agent contracts make outputs auditable and safer.
 
