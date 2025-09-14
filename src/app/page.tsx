@@ -49,6 +49,12 @@ export default function Home() {
   const [sim, setSim] = useState<SimResponse | null>(null);
   const [deploy, setDeploy] = useState<DeployResponse | null>(null);
 
+  // Evals (Daytona) smoke-test state
+  const [evalLanguage, setEvalLanguage] = useState<"python" | "typescript" | "javascript">("python");
+  const [evalCode, setEvalCode] = useState<string>("print('hello from eval')");
+  const [evalResult, setEvalResult] = useState<{ exitCode: number; stdout: string } | null>(null);
+  const [evalRunning, setEvalRunning] = useState(false);
+
   const steps = useMemo(
     () => [
       { key: "desire", label: "User Desire" },
@@ -155,6 +161,26 @@ export default function Home() {
       setError(e?.message ?? "Failed to deploy");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function runEvalSmoke() {
+    setEvalRunning(true);
+    setEvalResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/evals/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language: evalLanguage, code: evalCode, timeout: 10 }),
+      });
+      const data = await res.json();
+      if (data?.error) throw new Error(data.error);
+      setEvalResult({ exitCode: data.exitCode, stdout: data.stdout });
+    } catch (e: any) {
+      setError(e?.message ?? "Eval failed");
+    } finally {
+      setEvalRunning(false);
     }
   }
 
@@ -403,6 +429,39 @@ export default function Home() {
                 <div className="text-sm">Status: <span className="font-medium">{deploy.status}</span></div>
                 <div className="text-sm">Lineage ID: <span className="font-mono">{deploy.lineage_id}</span></div>
                 <LineagePreview lineageId={deploy.lineage_id} />
+              </div>
+            )}
+          </div>
+
+          {/* Evals: Daytona smoke-test */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Evals: Daytona smoke-test</h2>
+              <div className="flex items-center gap-2">
+                <select
+                  className="px-2 py-1 rounded-md border border-black/10 dark:border-white/15 bg-background/70 text-sm"
+                  value={evalLanguage}
+                  onChange={(e) => setEvalLanguage(e.target.value as any)}
+                >
+                  <option value="python">python</option>
+                  <option value="typescript">typescript</option>
+                  <option value="javascript">javascript</option>
+                </select>
+                <button className="btn btn-primary" disabled={evalRunning} onClick={runEvalSmoke}>
+                  {evalRunning ? "Running…" : "Run"}
+                </button>
+              </div>
+            </div>
+            <textarea
+              className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/15 bg-background/70 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              rows={5}
+              value={evalCode}
+              onChange={(e) => setEvalCode(e.target.value)}
+            />
+            {evalResult && (
+              <div className="mt-4 p-3 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+                <div className="text-sm mb-2">Exit code: <span className="font-mono">{evalResult.exitCode}</span></div>
+                <pre className="text-xs whitespace-pre-wrap">{evalResult.stdout}</pre>
               </div>
             )}
           </div>

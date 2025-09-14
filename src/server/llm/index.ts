@@ -11,7 +11,7 @@ export type CallInput = {
 
 export async function callJSON<T = any>(input: CallInput): Promise<T> {
   const provider = getProvider()
-  const model = input.model || process.env.FACTORY_LLM_MODEL || "gpt-4o-mini"
+  const model = input.model || process.env.FACTORY_LLM_MODEL || "gpt-5"
   const messages: ChatMessage[] = []
   const header = systemHeader((process.env.FACTORY_LLM_PROVIDER || "openai").toLowerCase())
   if (header) messages.push({ role: "system", content: header })
@@ -27,4 +27,3 @@ export async function callJSON<T = any>(input: CallInput): Promise<T> {
   const json = extractJSON(res.content)
   return json as T
 }
-

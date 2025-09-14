@@ -3,13 +3,13 @@
 - Mirror opencode best practices: provider-specific system prompts, environment context, JSON-only task prompts, and robust parsing.
 
 **Providers**
-- OpenAI: `FACTORY_LLM_PROVIDER=openai`, `OPENAI_API_KEY`, default model `gpt-4o-mini`.
-- Anthropic: `FACTORY_LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, default model `claude-3-5-sonnet-latest`.
+- OpenAI (Responses API): `FACTORY_LLM_PROVIDER=openai`, `OPENAI_API_KEY`, default model `gpt-5`.
+- Google Gemini 2.5: `FACTORY_LLM_PROVIDER=google` (or `gemini`), `GEMINI_API_KEY`, default model `gemini-2.5-pro`.
 - Model override: `FACTORY_LLM_MODEL`.
 
 **Prompt Layering**
-- System Header: Anthropic spoof line when using Anthropic.
-- System Persona: Provider/model-specific guidance (Codex/Beast/Gemini/Anthropic styles).
+- System Header: none (OpenAI/Google default).
+- System Persona: Provider/model-specific guidance (Codex/Beast/Gemini styles).
 - Environment: Platform, date, cwd for light context.
 - Task: JSON-only instruction with schema and inputs.
 
@@ -17,7 +17,6 @@
 - Codex: concise, actionable, one-line preambles before tool actions, plans for multi-step tasks.
 - Beast: keep going until solved, concise but thorough, validate results.
 - Gemini: strictly follow project conventions, confirm large deviations, short outputs.
-- Anthropic: terse CLI helper, no summaries unless asked.
 
 **Output Contract**
 - JSON-only: “Output JSON only. No backticks or prose.”
@@ -64,14 +63,14 @@
   - Output: Proposed diffs or patch instructions if asked; otherwise code blocks for exact replacements.
 
 **Implementation**
-- `src/server/llm/providers.ts`: minimal provider clients (OpenAI, Anthropic) + JSON extractor.
+- `src/server/llm/providers.ts`: provider clients (OpenAI via Responses API, Google Gemini via `@google/genai`) + JSON extractor.
 - `src/server/prompts/system.ts`: system header/persona/environment.
 - `src/server/prompts/tasks.ts`: normalize, plan, simulate task prompts.
 - `src/server/llm/index.ts`: `callJSON()` assembles layers and calls provider.
 - API routes use `callJSON()` and fallback to current static behavior if keys missing.
 
 **Example: Normalize Prompt (abbreviated)**
-- System: Codex or Anthropic/Gemini variants.
+- System: Codex or Gemini variants.
 - Task:
   - “Normalize the following desire into a spec summary. Follow the schema exactly and respond with JSON only.”
   - `<schema>`: spec_graph_id, spec_summary.identity/desire/contracts/workflows/interface

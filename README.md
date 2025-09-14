@@ -444,6 +444,11 @@ Notes:
 - For Python, matplotlib output is parsed into `artifacts.charts` when applicable.
 - You can upload small input files via `files[]` prior to execution.
 
+Smoke test:
+
+- Start the dev server: `npm run dev`
+- In another shell: `npm run smoke:evals`
+
 **Why multiple LLMs?**
 Different tasks require different reasoning and context windows. Clear agent contracts make outputs auditable and safer.
 
